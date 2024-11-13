@@ -25,6 +25,7 @@ import collections
 import threading
 import logging
 import queue
+import time
 from typing import Optional, List
 
 from openant.base.driver import (
@@ -194,27 +195,46 @@ class Node:
         self.get_meta_data()
         self.ant.start()
 
-    def _main(self):
-        while self._running:
+    def _main(self, prev_frame, flag= False):
+        start_time = time.time()
+        while True:
             try:
                 (data_type, channel, data) = self._datas.get(True, 1.0)
                 self._datas.task_done()
+                logging.warn("Broadcast data")
+                logging.warn(data)
+                if data_type  == "broadcast":
+                    if flag and data[0] == 16:
+                        return data
+                    elif data[0] == 16 and (data[5] > prev_frame or (data[5]==0 and prev_frame==255)):
+                        return data
 
-                if data_type == "broadcast":
-                    self.channels[channel].on_broadcast_data(data)
-                elif data_type == "burst":
-                    self.channels[channel].on_burst_data(data)
-                elif data_type == "broadcast_tx":
-                    self.channels[channel].on_broadcast_tx_data(data)
-                elif data_type == "acknowledge":
-                    self.channels[channel].on_acknowledge_data(data)
-                else:
-                    _logger.warning("Unknown data type '%s': %r", data_type, data)
+                # if data_type == "broadcast":
+                #     print("I got data boardcast")
+                #     break
+                #     self.channels[channel].on_broadcast_data(data)
+                    
+                # elif data_type == "burst":
+                #     print("I got data brust")
+                #     break
+                #     self.channels[channel].on_burst_data(data)
+                # elif data_type == "broadcast_tx":
+                #     self.channels[channel].on_broadcast_tx_data(data)
+                # elif data_type == "acknowledge":
+                #     self.channels[channel].on_acknowledge_data(data)
+                # else:
+                #     _logger.warning("Unknown data type '%s': %r", data_type, data)
             except queue.Empty as _:
+                end_time = time.time()
+                if end_time - start_time > 5:
+                    logging.warn("No Data")
+                    data = [0, 0, 0, 0, 0, 0, 0, 0]
+                    return data
                 pass
 
-    def start(self):
-        self._main()
+    def start(self, frame, flag=False):
+        data =  self._main(frame, flag)
+        return data
 
     def stop(self):
         if self._running:

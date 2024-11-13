@@ -2,7 +2,7 @@ from openant.easy.node import Node
 from openant.devices import ANTPLUS_NETWORK_KEY
 from openant.devices.tire_pressure_monitor import TirePressureMonitor, TirePressureData
 
-
+ANTPLUS_NETWORK_KEY =[0xE8, 0xE4, 0x33, 0xA9, 0xDD, 0x56, 0xC1, 0x43]
 def main(device_id=0):
     node = Node()
     node.set_network_key(0x00, ANTPLUS_NETWORK_KEY)

@@ -56,7 +56,7 @@ class TirePressureMonitor(AntPlusDevice):
         # device 48 so make ANT+ device with that device type, period switches between 4 Hz (8192) when pumping and 1 Hz (32768) during normal use
         super().__init__(
             node,
-            device_type=DeviceType.TirePressureMonitor.value,
+            device_type=16,
             device_id=device_id,
             period=8192,
             name=name,

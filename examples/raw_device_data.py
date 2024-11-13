@@ -29,16 +29,24 @@ If actually developing a ANT+ device, it's probably better to use the AntPlusDev
 from openant.easy.node import Node
 from openant.easy.channel import Channel
 
-NETWORK_KEY = [0xB9, 0xA5, 0x21, 0xFB, 0xBD, 0x72, 0xC3, 0x45]
+NETWORK_KEY = [0xE8, 0xE4, 0x33, 0xA9, 0xDD, 0x56, 0xC1, 0x43]
 
 
 def on_data(data):
     page = data[0]
-    if (page & 0x0F) <= 7:
-        heartrate = data[7]
-        print(f"heart rate: {heartrate} BPM")
+
+    if page == 80: # manufacturer
+        print("Manifacturer data ")
+    elif page == 81:
+        print("Acknowledgement ")
+    elif (page & 0x0F) <= 7:
+        distance = data[7]
+        print(f"distance : {distance} cm")
 
     print(f"on_data: {data}")
+
+def on_tx_ack(data):
+    print("hello")
 
 
 def main():
@@ -49,19 +57,20 @@ def main():
     # create the network node with key
     node = Node()
     node.set_network_key(0x00, NETWORK_KEY)
-
+    
     # create channel
+    #channel = node.new_channel(Channel.Type.BIDIRECTIONAL_RECEIVE)
     channel = node.new_channel(Channel.Type.BIDIRECTIONAL_RECEIVE)
-
+    
     # setup callbacks
     channel.on_broadcast_data = on_data
     channel.on_burst_data = on_data
 
     # setup slave channel
-    channel.set_period(8070)
+    channel.set_period(8192)
     channel.set_search_timeout(12)
-    channel.set_rf_freq(57)
-    channel.set_id(0, 120, 0)
+    channel.set_rf_freq(66)
+    channel.set_id(0, 16, 0)
 
     try:
         channel.open()
